@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Cartas com Rank e Dificuldade</title>
+    <style>
+ 
+ /* animação */
+ @keyframes flutuar {
+ 0%{ top: 0;}
+ 100%{top: 20px;}}
+
+ /* fonte */
+ @font-face {
+            font-family: 'bold';
+            src: url('BoldPixels.otf') format('opentype');}
+
+ /* --- ESTILOS GERAIS --- */
+ *{ font-family: 'bold';}
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+            background-image: url(91657.jpg);
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        .container {
+            background-color: #333;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+/* PROPRIEDADES DE ANIMAÇÃO CORRIGIDAS E JUNTAS */
+            position: relative; 
+            animation-name: flutuar;
+            animation-duration: 3s;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+        }
+        h1, h2 {
+            color: #4CAF50;
+            font-family: 'bold';
+        }
+        .t1{ font-size: 50px;
+        background-color: #555;
+             color: #4CAF50;
+            width: 100%;
+            margin-bottom: 8px;}
+        p{ font-size: 25px;}
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px 0;
+            width: 80%;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: white;
+        }
+
+        /* --- ESTILOS ESPECÍFICOS DO JOGO --- */
+        #login-screen button {
+            background-color: #2196F3;
+            color: white;
+        }
+        #login-screen button:hover {
+            background-color: #0b7dda;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            padding: 10px;
+            background-color: #444;
+            border-radius: 8px;
+        }
+        .card-slot {
+            display: flex; 
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .card {
+            width: 100px;
+            height: 150px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            border: 3px solid #f0f0f0;
+            background-image: url(WhatsApp\ Image\ 2025-12-03\ at\ 21.32.43.jpeg);
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+        .card-used {
+            opacity: 0.3;
+            cursor: default;
+            transform: none !important;
+        }
+
+        /* Cores das cartas por dificuldade */
+        .easy { background-color: #27ae60; } /* Verde */
+        .medium { background-color: #f1c40f; } /* Amarelo */
+        .hard { background-color: #e74c3c; } /* Vermelho */
+        button{ margin: 15px;}
+        .answer-button {
+            background-color: #555;
+            color: white;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        .answer-button:hover:not(:disabled) {
+            background-color: #777;
+        }
+        .correct-answer {
+            background-color: #27ae60 !important;
+        }
+        .wrong-answer {
+            background-color: #e74c3c !important;
+        }
+        
+        /* --- ESTILOS DO RANK --- */
+        #rank-container {
+            margin-top: 20px;
+        }
+        #rank-list {
+            list-style: none;
+            padding: 0;
+        }
+        #rank-list li {
+            background-color: #444;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        #rank-list li:first-child {
+            background-color: gold;
+            color: black;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="login-screen">
+        <h1>Entrar no Jogo</h1>
+        <p>Digite o nome dos dois jogadores para começar.</p>
+        <input type="text" id="player1-name" placeholder="Nome do Jogador 1">
+        <input type="text" id="player2-name" placeholder="Nome do Jogador 2">
+        <button onclick="startGame()">Iniciar Jogo</button>
+    </div>
+
+    <div id="game-screen" style="display:none;">
+        <h1 class="t1">Rodada de Quiz</h1>
+        
+        <div class="score-board">
+            <span id="player1-score"></span>
+            <span id="current-turn"></span>
+            <span id="player2-score"></span>
+        </div>
+
+        <p id="game-info">Rodada: <span id="round-count">1</span> / 15</p>
+        <p id="game-message">Escolha uma carta, Jogador(a) X!</p>
+        
+        <div id="cards-container" class="card-slot"></div>
+
+        <div id="question-container" style="display:none;">
+            <h2 id="question-text"></h2>
+            <div id="answers-container"></div>
+            <p id="answer-feedback"></p>
+            <button onclick="nextTurn()" id="next-turn-button" style="display:none;">Próxima Rodada</button>
+        </div>
+
+        <button onclick="endGame()">Finalizar Jogo e Ver Rank</button>
+    </div>
+
+    <div id="rank-screen" style="display:none;">
+        <h1>🏆 Rank de Pontuação</h1>
+        <div id="rank-container">
+            <ul id="rank-list">
+                </ul>
+        </div>
+        <button onclick="showLogin()">Novo Jogo</button>
+    </div>
+
+</div>
+
+<script>
+    const MAX_ROUNDS = 15;
+    let players = { p1: { name: '', score: 0 }, p2: { name: '', score: 0 } };
+    let isPlayer1Turn = true;
+    let currentRound = 1;
+    let questionsUsedIndices = []; 
+    let currentQuestionData = null;
+
+    const ALL_QUESTIONS = [
+        // Dificuldade Fácil (1 Ponto) - Cor: Verde
+        { question: "Qual o maior país da América do Sul?", answers: ["Argentina", "Brasil", "Chile"], correct: [1], difficulty: 'easy', points: 1 },
+        { question: "Qual a capital do Japão?", answers: ["Pequim", "Seul", "Tóquio"], correct: [2], difficulty: 'easy', points: 1 },
+        { question: "Quantos dias tem um ano bissexto?", answers: ["365", "366", "367"], correct: [1], difficulty: 'easy', points: 1 },
+        { question: "Qual o símbolo químico da água?", answers: ["H2O", "O2", "CO2"], correct: [0], difficulty: 'easy', points: 1 },
+        { question: "Quem pintou a Mona Lisa?", answers: ["Picasso", "Da Vinci", "Van Gogh"], correct: [1], difficulty: 'easy', points: 1 },
+        
+        // Dificuldade Média (3 Pontos) - Cor: Amarela
+        { question: "Quais são os planetas gasosos do nosso sistema solar?", answers: ["Mercúrio", "Júpiter", "Vênus", "Saturno"], correct: [1, 3], difficulty: 'medium', points: 3 },
+        { question: "Qual cidade brasileira foi capital antes de Brasília?", answers: ["Salvador", "Rio de Janeiro", "São Paulo"], correct: [1], difficulty: 'medium', points: 3 },
+        { question: "Qual dessas obras é de Machado de Assis?", answers: ["O Guarani", "Dom Casmurro", "Iracema"], correct: [1], difficulty: 'medium', points: 3 },
+        { question: "Quais países fazem fronteira com o Brasil?", answers: ["Argentina", "Peru", "Chile", "Equador"], correct: [0, 1], difficulty: 'medium', points: 3 },
+        { question: "Qual o elemento químico com símbolo 'Fe'?", answers: ["Fósforo", "Ferro", "Flúor"], correct: [1], difficulty: 'medium', points: 3 },
+
+        // Dificuldade Difícil (5 Pontos) - Cor: Vermelha
+        { question: "Quem foi o primeiro presidente da República Velha?", answers: ["Deodoro da Fonseca", "Floriano Peixoto", "Prudente de Morais"], correct: [0], difficulty: 'hard', points: 5 },
+        { question: "Quais as cidades-estado que se enfrentaram na Guerra do Peloponeso?", answers: ["Roma e Cartago", "Atenas e Esparta", "Tebas e Corinto"], correct: [1], difficulty: 'hard', points: 5 },
+        { question: "Em que ano a lei Áurea foi assinada?", answers: ["1889", "1888", "1891"], correct: [1], difficulty: 'hard', points: 5 },
+        { question: "Quais são as capitais do Uruguai e da Colômbia?", answers: ["Montevidéu e Bogotá", "Assunção e Lima", "Santiago e Quito"], correct: [0], difficulty: 'hard', points: 5 },
+        { question: "Quais são os três tipos de rochas?", answers: ["Metamórficas", "Sedimentares", "Ígneas"], correct: [0, 1, 2], difficulty: 'hard', points: 5 }
+    ];
+
+    // --- FUNÇÕES DE NAVEGAÇÃO E JOGO ---
+
+    function showScreen(screenId) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('rank-screen').style.display = 'none';
+        document.getElementById(screenId).style.display = 'block';
+    }
+
+    function showLogin() {
+        showScreen('login-screen');
+    }
+
+    function startGame() {
+        const p1Name = document.getElementById('player1-name').value.trim();
+        const p2Name = document.getElementById('player2-name').value.trim();
+
+        if (p1Name === "" || p2Name === "") {
+            alert("Por favor, digite o nome de ambos os jogadores.");
+            return;
+        }
+
+        // Inicialização do Jogo
+        players.p1.name = p1Name;
+        players.p2.name = p2Name;
+        players.p1.score = 0;
+        players.p2.score = 0;
+        isPlayer1Turn = true;
+        currentRound = 1; 
+        questionsUsedIndices = [];
+
+        updateScoreBoard();
+        createCards();
+        showScreen('game-screen');
+    }
+    
+    // --- FUNÇÕES DE PLACAR E CARTAS ---
+
+    function updateScoreBoard() {
+        document.getElementById('player1-score').textContent = `${players.p1.name}: ${players.p1.score} pts`;
+        document.getElementById('player2-score').textContent = `${players.p2.name}: ${players.p2.score} pts`;
+        
+        const currentPlayer = isPlayer1Turn ? players.p1.name : players.p2.name;
+        document.getElementById('current-turn').textContent = `Vez de: ${currentPlayer}`;
+        document.getElementById('game-message').textContent = `Escolha uma carta, ${currentPlayer}!`;
+        document.getElementById('round-count').textContent = currentRound;
+    }
+
+    function createCards() {
+        const container = document.getElementById("cards-container");
+        container.innerHTML = '';
+        
+        // Garante que o contêiner de perguntas esteja escondido
+        document.getElementById('question-container').style.display = 'none';
+        
+        // Garante que o contêiner de cartas e a mensagem sejam exibidos
+        document.getElementById("cards-container").style.display = 'flex'; 
+        document.getElementById('game-message').style.display = 'block';
+
+        // Cria cartas apenas para as perguntas AINDA NÃO USADAS
+        ALL_QUESTIONS.forEach((question, i) => {
+            if (questionsUsedIndices.includes(i)) return; 
+
+            const card = document.createElement("div");
+            
+            card.classList.add("card", question.difficulty); 
+            
+            card.innerHTML = `<span style="font-size: 0.8em;">${question.difficulty.toUpperCase()}</span><br>+${question.points} Pts`;
+            
+            card.dataset.questionIndex = i; 
+            card.onclick = function() {
+                if (questionsUsedIndices.length === MAX_ROUNDS) return; 
+                showQuestion(i);
+            };
+
+            container.appendChild(card);
+        });
+    }
+
+    function showQuestion(questionIndex) {
+        currentQuestionData = ALL_QUESTIONS[questionIndex];
+        
+        document.getElementById("cards-container").style.display = 'none';
+        document.getElementById('game-message').style.display = 'none';
+        document.getElementById("question-container").style.display = 'block';
+        document.getElementById("next-turn-button").style.display = 'none';
+        document.getElementById("answer-feedback").textContent = '';
+
+        document.getElementById("question-text").textContent = currentQuestionData.question;
+        const answersContainer = document.getElementById("answers-container");
+        answersContainer.innerHTML = ''; 
+
+        // Cria botões de alternativas
+        currentQuestionData.answers.forEach((answer, index) => {
+            const button = document.createElement("button");
+            button.classList.add("answer-button");
+            button.textContent = answer;
+            
+            button.onclick = function() {
+                checkAnswer(questionIndex, index, button);
+            };
+            answersContainer.appendChild(button);
+        });
+
+        // Adiciona a pergunta à lista de usadas
+        questionsUsedIndices.push(questionIndex);
+    }
+
+    function checkAnswer(questionIndex, selectedIndex, button) {
+        const questionData = ALL_QUESTIONS[questionIndex];
+        const isCorrect = questionData.correct.includes(selectedIndex);
+        const answerButtons = document.querySelectorAll(".answer-button");
+        const feedback = document.getElementById("answer-feedback");
+
+        // Desabilita todos os botões após a resposta
+        answerButtons.forEach(btn => btn.disabled = true);
+
+        // Lógica de pontuação
+        if (isCorrect) {
+            button.classList.add("correct-answer");
+            getCurrentPlayer().score += questionData.points;
+            feedback.textContent = `✅ Resposta correta! +${questionData.points} pontos.`;
+        } else {
+            button.classList.add("wrong-answer");
+            feedback.textContent = `❌ Resposta incorreta.`;
+        }
+
+        // Revela as respostas corretas
+        answerButtons.forEach((btn, index) => {
+             if (questionData.correct.includes(index) && !btn.classList.contains("correct-answer")) {
+                btn.classList.add("correct-answer");
+            }
+        });
+        
+        updateScoreBoard();
+        document.getElementById("next-turn-button").style.display = 'block';
+    }
+
+    function getCurrentPlayer() {
+        return isPlayer1Turn ? players.p1 : players.p2;
+    }
+
+    // Função que gerencia a troca de turnos e rodadas
+    function nextTurn() {
+        // Verifica se o jogo acabou
+        if (currentRound >= MAX_ROUNDS) {
+            endGame();
+            return;
+        }
+
+        // Avança para a próxima rodada e troca a vez
+        currentRound++;
+        isPlayer1Turn = !isPlayer1Turn; // LINHA QUE FAZ A ALTERNÂNCIA DE JOGADOR
+        
+        updateScoreBoard();
+        createCards();
+        
+        // Garante que as cartas fiquem visíveis novamente (Correção de visibilidade)
+        document.getElementById("cards-container").style.display = 'flex'; 
+        document.getElementById('game-message').style.display = 'block'; 
+    }
+    
+    // --- FUNÇÕES DE RANK ---
+    
+    function endGame() {
+        // Salva a pontuação no Rank
+        saveScoreToRank(players.p1.name, players.p1.score);
+        saveScoreToRank(players.p2.name, players.p2.score);
+        
+        // Exibe o rank
+        showRank();
+    }
+
+    function getRank() {
+        const rank = JSON.parse(localStorage.getItem('gameRank')) || [];
+        return rank.sort((a, b) => b.score - a.score); 
+    }
+
+    function saveScoreToRank(name, score) {
+        let rank = getRank();
+        
+        const existingEntry = rank.find(p => p.name === name);
+        if (existingEntry) {
+            if (score > existingEntry.score) {
+                existingEntry.score = score;
+            }
+        } else {
+            rank.push({ name, score });
+        }
+        
+        rank.sort((a, b) => b.score - a.score);
+        localStorage.setItem('gameRank', JSON.stringify(rank));
+    }
+
+    function showRank() {
+        const rankList = document.getElementById('rank-list');
+        rankList.innerHTML = '';
+        const rank = getRank();
+
+        rank.forEach((entry, index) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${index + 1}º - ${entry.name}: ${entry.score} pontos`;
+            rankList.appendChild(listItem);
+        });
+
+        showScreen('rank-screen');
+    }
+
+    // Inicialização ao carregar a página
+    window.onload = function() {
+        showLogin();
+    };
+
+</script>
+
+</body>
+</html>
